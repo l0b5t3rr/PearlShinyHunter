@@ -31,6 +31,10 @@ namespace ShinyAutomation
         private Button _browseEmuButton = null!;
         private Button _browseRomButton = null!;
         private Button _launchEmuButton = null!;
+        private Label _step1Label = null!;
+        private Label _step2Label = null!;
+        private Label _step3Label = null!;
+        private Label _step4Label = null!;
 
         public MainForm()
         {
@@ -54,9 +58,9 @@ namespace ShinyAutomation
         private void InitializeComponent()
         {
             this.Text = "Pokémon Pearl Shiny Hunter";
-            this.Size = new Size(700, 600);
+            this.Size = new Size(850, 700);
             this.StartPosition = FormStartPosition.CenterScreen;
-            this.MinimumSize = new Size(650, 550);
+            this.MinimumSize = new Size(850, 700);
 
             // Status Panel
             var statusPanel = new Panel
@@ -113,18 +117,30 @@ namespace ShinyAutomation
                 Padding = new Padding(10)
             };
 
+            var controlTitleLabel = new Label
+            {
+                Text = "🎮 Hunting Controls:",
+                Location = new Point(10, 5),
+                Size = new Size(200, 20),
+                Font = new Font("Segoe UI", 9, FontStyle.Bold),
+                ForeColor = Color.DarkGreen
+            };
+
             _startButton = new Button
             {
-                Text = "Start Monitoring",
-                Location = new Point(10, 10),
-                Size = new Size(120, 30)
+                Text = "▶️ Start Hunting",
+                Location = new Point(10, 28),
+                Size = new Size(150, 30),
+                BackColor = Color.LightGreen,
+                Font = new Font("Segoe UI", 9, FontStyle.Bold),
+                Enabled = true
             };
             _startButton.Click += StartButton_Click;
 
             _stopButton = new Button
             {
-                Text = "Stop Monitoring",
-                Location = new Point(140, 10),
+                Text = "⏹️ Stop Hunting",
+                Location = new Point(170, 28),
                 Size = new Size(120, 30),
                 Enabled = false
             };
@@ -133,34 +149,45 @@ namespace ShinyAutomation
             _clearLogButton = new Button
             {
                 Text = "Clear Log",
-                Location = new Point(270, 10),
+                Location = new Point(300, 28),
                 Size = new Size(100, 30)
             };
             _clearLogButton.Click += (s, e) => _statusTextBox.Clear();
 
             _soundAlertCheckBox = new CheckBox
             {
-                Text = "Sound Alert on Shiny",
-                Location = new Point(10, 45),
-                Size = new Size(200, 25),
+                Text = "🔔 Sound Alert",
+                Location = new Point(410, 30),
+                Size = new Size(120, 25),
                 Checked = true
             };
 
             _autoFocusCheckBox = new CheckBox
             {
-                Text = "Auto Focus Window",
-                Location = new Point(220, 45),
-                Size = new Size(200, 25),
+                Text = "🔔 Auto Focus",
+                Location = new Point(540, 30),
+                Size = new Size(120, 25),
                 Checked = false
+            };
+
+            var infoLabel = new Label
+            {
+                Text = "Hunting will auto-create savestate and begin immediately",
+                Location = new Point(10, 62),
+                Size = new Size(400, 15),
+                Font = new Font("Segoe UI", 8),
+                ForeColor = Color.Gray
             };
 
             controlPanel.Controls.AddRange(new Control[] 
             { 
+                controlTitleLabel,
                 _startButton, 
                 _stopButton, 
                 _clearLogButton,
                 _soundAlertCheckBox,
-                _autoFocusCheckBox
+                _autoFocusCheckBox,
+                infoLabel
             });
 
             // Log Panel
@@ -184,17 +211,67 @@ namespace ShinyAutomation
             };
 
             // Add controls to form
-            // Setup Panel
             var setupPanel = CreateSetupPanel();
+            var instructionPanel = CreateInstructionPanel();
 
             this.Controls.Add(_statusTextBox);
             this.Controls.Add(logLabel);
             this.Controls.Add(controlPanel);
+            this.Controls.Add(instructionPanel);
             this.Controls.Add(statusPanel);
             this.Controls.Add(setupPanel);
 
-            LogMessage("Application started. Waiting for monitoring to begin...");
+            LogMessage("Application started. Follow the step-by-step guide to begin hunting!");
             LoadSettings();
+        }
+
+        private Panel CreateInstructionPanel()
+        {
+            var panel = new Panel
+            {
+                Dock = DockStyle.Top,
+                Height = 120,
+                BorderStyle = BorderStyle.FixedSingle,
+                Padding = new Padding(10),
+                BackColor = Color.FromArgb(240, 248, 255)
+            };
+
+            var titleLabel = new Label
+            {
+                Text = "📋 Quick Start Guide:",
+                Location = new Point(10, 5),
+                Size = new Size(300, 25),
+                Font = new Font("Segoe UI", 10, FontStyle.Bold),
+                ForeColor = Color.DarkBlue
+            };
+
+            _step1Label = CreateStepLabel("1. (Optional) Set emulator/ROM paths and click Launch - or launch DeSmuME manually", 10, 35);
+            _step2Label = CreateStepLabel("2. In DeSmuME: Navigate to fishing spot with rod selected", 10, 55);
+            _step3Label = CreateStepLabel("3. In DeSmuME: Tools → Lua Scripting → Load 'lua/shiny_fishing.lua' (if error, drag lua51.dll to emulator folder)", 10, 75);
+            _step4Label = CreateStepLabel("4. Click 'Start Hunting' - savestate auto-created and hunting begins!", 10, 95);
+
+            panel.Controls.AddRange(new Control[] 
+            { 
+                titleLabel, 
+                _step1Label, 
+                _step2Label, 
+                _step3Label, 
+                _step4Label
+            });
+
+            return panel;
+        }
+
+        private Label CreateStepLabel(string text, int x, int y)
+        {
+            return new Label
+            {
+                Text = $"⭕ {text}",
+                Location = new Point(x, y),
+                Size = new Size(800, 20),
+                Font = new Font("Segoe UI", 9),
+                ForeColor = Color.Gray
+            };
         }
 
         private Panel CreateSetupPanel()
@@ -202,16 +279,16 @@ namespace ShinyAutomation
             var setupPanel = new Panel
             {
                 Dock = DockStyle.Top,
-                Height = 120,
+                Height = 95,
                 BorderStyle = BorderStyle.FixedSingle,
                 Padding = new Padding(10)
             };
 
             var titleLabel = new Label
             {
-                Text = "Setup (Optional - for convenience):",
+                Text = "🎯 Emulator & ROM Setup:",
                 Location = new Point(10, 5),
-                Size = new Size(300, 20),
+                Size = new Size(400, 20),
                 Font = new Font("Segoe UI", 9, FontStyle.Bold)
             };
 
@@ -226,14 +303,14 @@ namespace ShinyAutomation
             _emuPathTextBox = new TextBox
             {
                 Location = new Point(95, 28),
-                Size = new Size(440, 20),
-                PlaceholderText = "Path to DeSmuME.exe (optional)"
+                Size = new Size(580, 20),
+                PlaceholderText = "Path to DeSmuME.exe"
             };
 
             _browseEmuButton = new Button
             {
                 Text = "Browse",
-                Location = new Point(540, 27),
+                Location = new Point(685, 27),
                 Size = new Size(70, 23)
             };
             _browseEmuButton.Click += BrowseEmuButton_Click;
@@ -249,14 +326,14 @@ namespace ShinyAutomation
             _romPathTextBox = new TextBox
             {
                 Location = new Point(95, 58),
-                Size = new Size(440, 20),
-                PlaceholderText = "Path to Pokemon Pearl ROM (optional)"
+                Size = new Size(580, 20),
+                PlaceholderText = "Path to Pokemon Pearl ROM"
             };
 
             _browseRomButton = new Button
             {
                 Text = "Browse",
-                Location = new Point(540, 57),
+                Location = new Point(685, 57),
                 Size = new Size(70, 23)
             };
             _browseRomButton.Click += BrowseRomButton_Click;
@@ -264,28 +341,20 @@ namespace ShinyAutomation
             // Launch Button
             _launchEmuButton = new Button
             {
-                Text = "🚀 Launch Emulator with ROM",
-                Location = new Point(95, 88),
-                Size = new Size(200, 25),
-                Enabled = false
+                Text = "🚀 Launch\nEmulator",
+                Location = new Point(765, 27),
+                Size = new Size(60, 54),
+                Enabled = false,
+                Font = new Font("Segoe UI", 8, FontStyle.Bold)
             };
             _launchEmuButton.Click += LaunchEmuButton_Click;
-
-            var instructionLabel = new Label
-            {
-                Text = "After launching, load your savestate and run the Lua script from: lua/shiny_fishing.lua",
-                Location = new Point(300, 88),
-                Size = new Size(360, 30),
-                ForeColor = Color.DarkBlue,
-                Font = new Font("Segoe UI", 8)
-            };
 
             setupPanel.Controls.AddRange(new Control[]
             {
                 titleLabel,
                 emuLabel, _emuPathTextBox, _browseEmuButton,
                 romLabel, _romPathTextBox, _browseRomButton,
-                _launchEmuButton, instructionLabel
+                _launchEmuButton
             });
 
             return setupPanel;
@@ -354,15 +423,27 @@ namespace ShinyAutomation
 
                 System.Diagnostics.Process.Start(startInfo);
                 
-                LogMessage($"Launched DeSmuME with ROM: {Path.GetFileName(romPath)}");
-                LogMessage("Next steps: Load your savestate (F1) and load the Lua script:");
-                LogMessage($"  → {Path.GetFullPath(Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "..", "..", "..", "..", "lua", "shiny_fishing.lua"))}");
+                LogMessage($"✅ Launched DeSmuME with ROM: {Path.GetFileName(romPath)}");
+                LogMessage("📋 Next: Follow steps 3-4 in the guide above");
+                LogMessage($"   Lua script location: {Path.GetFullPath(Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "..", "..", "..", "..", "lua", "shiny_fishing.lua"))}");
             }
             catch (Exception ex)
             {
                 MessageBox.Show($"Failed to launch emulator: {ex.Message}", "Error", 
                     MessageBoxButtons.OK, MessageBoxIcon.Error);
             }
+        }
+
+
+
+        private void WriteCommandFile(string command)
+        {
+            string commandPath = Path.Combine(
+                AppDomain.CurrentDomain.BaseDirectory,
+                "..", "..", "..", "..", "shared", "command.txt");
+
+            commandPath = Path.GetFullPath(commandPath);
+            File.WriteAllText(commandPath, command);
         }
 
         private void UpdateLaunchButtonState()
@@ -441,7 +522,20 @@ namespace ShinyAutomation
             _startButton.Enabled = false;
             _stopButton.Enabled = true;
 
-            LogMessage("Started monitoring status file...");
+            LogMessage("🎣 Starting hunting session...");
+            LogMessage("✅ Monitoring status file");
+            
+            // Send START command to Lua
+            try
+            {
+                WriteCommandFile("START");
+                LogMessage("✅ START command sent to Lua - savestate will be auto-created");
+                LogMessage("🚀 Hunting begins immediately!");
+            }
+            catch (Exception ex)
+            {
+                LogMessage($"⚠️ Failed to send START command: {ex.Message}");
+            }
             
             try
             {
@@ -463,12 +557,20 @@ namespace ShinyAutomation
         {
             if (!_isMonitoring) return;
 
+            // Send STOP command to Lua
+            try
+            {
+                WriteCommandFile("STOP");
+                LogMessage("⏹️ STOP command sent to Lua");
+            }
+            catch { /* Ignore errors on stop */ }
+
             _cancellationTokenSource?.Cancel();
             _isMonitoring = false;
             _startButton.Enabled = true;
             _stopButton.Enabled = false;
 
-            LogMessage("Monitoring stopped.");
+            LogMessage("Hunting stopped.");
         }
 
         private void MainForm_FormClosing(object? sender, FormClosingEventArgs e)

@@ -51,22 +51,16 @@ PearlShinyHunter/
 
 ### Setup Steps
 
-1. **Start the C# app** (Press F5 in VS Code or run `dotnet run` in `controller/`)
+1. **Launch the Controller App** (Press F5 in VS Code or run `dotnet run` in `controller/`)
 
-2. **Use the Setup Panel:**
-   - Enter path to DeSmuME.exe
-   - Enter path to your Pokémon Pearl ROM
-   - Click "🚀 Launch Emulator with ROM"
+2. **Follow the Step-by-Step Guide in the UI:**
+   - ✅ **Step 1:** Set emulator and ROM paths (Browse buttons provided)
+   - ✅ **Step 2:** Click "🚀 Launch Emulator with ROM"
+   - ✅ **Step 3:** In DeSmuME: Navigate to fishing spot, create savestate (Shift+F1)
+   - ✅ **Step 4:** In DeSmuME: `Tools → Lua Scripting` → Load `lua/shiny_fishing.lua`
+   - ✅ **Step 5:** Click "Start Monitoring" then "▶️ Start Automation"
 
-3. **In DeSmuME:**
-   - Navigate to a fishing spot and create a savestate (Shift+F1)
-   - Open Lua console: `Tools → Lua Scripting → New Lua Script Window`
-   - Load `lua/shiny_fishing.lua` (path shown in C# app log)
-
-4. **Start hunting:**
-   - Click "Start Monitoring" in the C# app
-   - Type `automationLoop()` in DeSmuME's Lua console
-   - The bot starts fishing automatically!
+**That's it!** The bot automatically casts, checks encounters, and alerts you when a shiny is found. No manual typing in the Lua console needed!
 
 For detailed setup instructions, see [SETUP_GUIDE.md](SETUP_GUIDE.md).  
 For common questions, see [FAQ.md](FAQ.md).

@@ -16,6 +16,13 @@ This project automates shiny hunting for Magikarp in Pokémon Pearl using:
 - **IMPORTANT**: You need a version with Lua scripting support (not all versions have this)
 - Recommended: DeSmuME 0.9.11 or newer with Lua enabled
 
+#### 📦 Required: lua51.dll (Already Included!)
+- The `lua51.dll` file is **already included** in the `lua/` folder
+- This file must be present for DeSmuME to run Lua scripts
+- Keep it in the same folder as `shiny_fishing.lua`
+
+**If you move the Lua script**, make sure to move `lua51.dll` with it!
+
 ### 2. Pokémon Pearl ROM
 - You need a legitimate Pokémon Pearl ROM (US version recommended)
 - Other versions may work but memory addresses might differ
@@ -63,53 +70,61 @@ PARTY_POKEMON_1 = 0x022349B4
 
 ## Running the Automation
 
-### Easy Mode: Using the UI
+### 🚀 Simplified Workflow (Recommended)
 
-1. **Start the C# Controller Application**:
-   - In VS Code: Press **F5** to run
-   - Or via terminal: `cd controller && dotnet run`
+The UI now includes a **Step-by-Step Guide** that walks you through the entire process!
 
-2. **In the application window**:
-   - Enter paths to your DeSmuME executable and ROM (these are saved for future use)
-   - Click **"🚀 Launch Emulator with ROM"**
-   - The emulator will open with your ROM loaded
+#### **Step 1: Launch the Controller**
+- In VS Code: Press **F5**
+- Or via terminal: `cd controller && dotnet run`
 
-3. **In DeSmuME**:
-   - Load your savestate (press **F1**)
-   - Open Lua console: `Tools → Lua Scripting → New Lua Script Window`
-   - Click **Browse** and select `lua/shiny_fishing.lua`
-   - The script will automatically find the status file using relative paths
+#### **Step 2: Set Paths**
+- Click **"Browse Emulator"** → Select `DeSmuME.exe`
+- Click **"Browse ROM"** → Select your `Pokemon_Pearl.nds`
+- Paths are saved automatically for next time ✅
 
-4. **Back in the C# app**:
-   - Click **"Start Monitoring"**
+#### **Step 3: Launch Emulator**
+- Click **"🚀 Launch Emulator with ROM"**
+- DeSmuME opens with your ROM loaded ✅
 
-5. **In DeSmuME's Lua console**, type:
-   ```lua
-   automationLoop()
-   ```
+#### **Step 4: Prepare In-Game**
+In DeSmuME:
+1. Navigate to a **fishing spot** (Route 203, 204, etc.)
+2. Position yourself facing water with **rod selected**
+3. **Create savestate**: Press **Shift+F1**
 
-### Manual Mode: Traditional Setup
+#### **Step 5: Load Lua Script**
+In DeSmuME:
+1. Go to `Tools → Lua Scripting → New Lua Script Window`
+2. Click **"Browse"**
+3. Navigate to `lua/shiny_fishing.lua` (path shown in controller log)
+4. The script loads and shows: *"Waiting for START command from UI"*
 
-1. **Open DeSmuME** with your Pokémon Pearl ROM loaded
-2. **Load your savestate** (F1)
-3. **Open the Lua console**:
-   - Menu: `Tools → Lua Scripting → New Lua Script Window`
-4. Click **Browse** and select `lua/shiny_fishing.lua`
-5. The script will load and print initialization messages
+**⚠️ If you see "lua51.dll was not found"**:
+- Make sure `lua51.dll` is in the `lua/` folder (it should already be there)
+- DeSmuME looks for the DLL in the same folder as the Lua script
 
-6. **Start the C# Controller Application**:
-   ```powershell
-   cd controller
-   dotnet build
-   dotnet run
-   ```
+#### **Step 6: Start Monitoring**
+Back in the Controller:
+- Click **"Start Monitoring"**
+- Status updates to "READY" ✅
 
-7. Click **"Start Monitoring"** to begin watching for updates
+#### **Step 7: Start Automation**
+- Click **"▶️ Start Automation"**
+- The bot immediately begins fishing!
 
-8. **Start automation** in DeSmuME's Lua console:
-   ```lua
-   automationLoop()
-   ```
+**No typing in Lua console needed!** Everything is controlled from the UI.
+
+---
+
+### 🎮 Automation Controls
+
+Once running, you can:
+- **⏸️ Pause** - Temporarily pause hunting
+- **▶️ Resume** - Continue from where you left off  
+- **⏹️ Stop** - Stop automation completely
+
+All commands are sent from the UI to the Lua script automatically!
 
 ---
 

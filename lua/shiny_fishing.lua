@@ -153,7 +153,7 @@ end
 
 -- Reload the savestate to reset
 function resetToSavestate()
-    savestate.load(savestate.saveslot(SAVESTATE_SLOT))
+    savestate.load(SAVESTATE_SLOT)
     waitFrames(30)  -- Wait for state to stabilize
 end
 
@@ -268,6 +268,142 @@ function automationLoop()
 end
 
 -- =====================================================
+-- Command System (Bidirectional Communication)
+-- =====================================================
+
+local COMMAND_FILE = scriptDir .. "..\\shared\\command.txt"
+local lastCommand = ""
+local isPaused = false
+
+-- Read command from C# controller
+function readCommand()
+    local file = io.open(COMMAND_FILE, "r")
+    if file then
+        local command = file:read("*line")
+        file:close()
+        return command or ""
+    end
+    return ""
+end
+
+-- Clear command file
+function clearCommand()
+    local file = io.open(COMMAND_FILE, "w")
+    if file then
+        file:write("")
+        file:close()
+    end
+end
+
+-- Check for commands from C# controller
+function processCommands()
+    local command = readCommand()
+    
+    if command ~= "" and command ~= lastCommand then
+        lastCommand = command
+        
+        if command == "START" then
+            clearCommand()
+            writeStatus("STARTING", "Automation starting via controller command...")
+            return "START"
+        elseif command == "PAUSE" then
+            clearCommand()
+            isPaused = true
+            writeStatus("PAUSED", "Automation paused by user")
+            return "PAUSE"
+        elseif command == "RESUME" then
+            clearCommand()
+            isPaused = false
+            writeStatus("RESUMING", "Automation resumed")
+            return "RESUME"
+        elseif command == "STOP" then
+            clearCommand()
+            writeStatus("STOPPED", "Automation stopped by user")
+            return "STOP"
+        end
+    end
+    
+    return nil
+end
+
+-- Modified automation loop with pause support
+function automationLoopWithPause()
+    writeStatus("STARTING", "Creating savestate and starting automation...")
+    
+    -- Create savestate automatically
+    savestate.save(SAVESTATE_SLOT)
+    waitFrames(30)  -- Wait for savestate to complete
+    writeStatus("SAVESTATE_CREATED", "Savestate created in slot 1. Beginning hunt...")
+    
+    while not stats.shinyFound do
+        -- Check for pause/stop commands
+        local cmd = processCommands()
+        if cmd == "STOP" then
+            return  -- Exit completely
+        end
+        
+        -- If paused, wait
+        while isPaused do
+            emu.frameadvance()
+            local resumeCmd = processCommands()
+            if resumeCmd == "RESUME" then
+                break
+            elseif resumeCmd == "STOP" then
+                return
+            end
+        end
+        
+        -- Cast the rod
+        castRod()
+        
+        -- Wait for a bite (timeout after 10 seconds = ~600 frames at 60fps)
+        local gotBite = waitForBite(600)
+        
+        if not gotBite then
+            writeStatus("NO_BITE", "No bite. Recasting...")
+            resetToSavestate()
+        else
+            -- Trigger the encounter
+            triggerEncounter()
+            
+            -- Check if it's a shiny Magikarp
+            local isShinyMagikarp = checkEncounter()
+            
+            if not isShinyMagikarp then
+                -- Reset and try again
+                resetToSavestate()
+            else
+                -- SHINY FOUND! Pause execution
+                writeStatus("PAUSED", "SHINY FOUND! Automation paused.")
+                return  -- Exit the loop
+            end
+        end
+        
+        -- Small delay between attempts
+        waitFrames(30)
+    end
+end
+
+-- Command monitoring loop (runs continuously)
+function commandMonitorLoop()
+    while true do
+        local cmd = processCommands()
+        
+        if cmd == "START" then
+            -- Start the automation
+            automationLoopWithPause()
+            
+            -- After automation ends, go back to monitoring
+            if not stats.shinyFound then
+                writeStatus("READY", "Ready for next command")
+            end
+        end
+        
+        emu.frameadvance()
+    end
+end
+
+-- =====================================================
 -- Main Entry Point
 -- =====================================================
 
@@ -276,21 +412,18 @@ function initialize()
     print("===========================================")
     print("Pokémon Pearl Shiny Magikarp Fishing Bot")
     print("===========================================")
-    print("Make sure you:")
-    print("1. Are standing at a fishing spot")
-    print("2. Have saved the game")
-    print("3. Have created a savestate in slot 1")
-    print("4. Have the fishing rod selected")
+    print("Script is now monitoring for commands from the UI")
+    print("Click 'Start Automation' in the controller app to begin")
     print("===========================================")
     
-    writeStatus("INITIALIZED", "Lua script loaded and ready")
+    writeStatus("READY", "Lua script loaded. Waiting for START command from UI")
+    clearCommand()  -- Clear any old commands
 end
 
 -- Run the automation
 initialize()
 
--- Uncomment the line below to start automation automatically
--- automationLoop()
+-- Start command monitoring loop
+commandMonitorLoop()
 
--- For manual control, you can call automationLoop() from the Lua console
-print("Call automationLoop() to start automation")
+-- Note: You can still manually call automationLoop() if needed for testing

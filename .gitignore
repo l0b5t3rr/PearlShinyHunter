@@ -39,8 +39,8 @@ shared/log_*.txt
 shared/shiny_encounters.txt
 shared/user_settings.json
 
-# Keep config.json and status.txt as templates, but ignore if they get modified at runtime
-# Users should copy status.txt.template if needed
+# Keep config.json, status.txt, and command.txt as templates
+# command.txt is used for bidirectional communication at runtime
 
 # Emulator Files (if you accidentally copy them here)
 *.nds

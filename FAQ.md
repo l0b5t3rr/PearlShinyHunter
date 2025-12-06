@@ -13,20 +13,21 @@ DeSmuME's Lua scripting system is designed as an embedded feature within the emu
 
 **The workflow is:**
 1. External C# app can **launch** DeSmuME with a ROM (using command-line arguments)
-2. But the user must **manually load the Lua script** via the UI
-3. Once loaded, the Lua script communicates with the C# app via the status file
+2. But the user must **manually load the Lua script** via the UI (Step 4 in the guide)
+3. Once loaded, the Lua script **waits for commands** from the C# app
 
 **What we've done to make it easier:**
 - ✅ The C# app provides a "Launch Emulator" button that opens DeSmuME with your ROM
 - ✅ The C# app shows you the exact path to the Lua script to load
 - ✅ The Lua script uses **relative paths** so it works regardless of where you install the project
-- ✅ You only need to load the script once per session
+- ✅ **NEW:** You don't need to type anything in Lua console - just click "Start Automation" in the UI!
+- ✅ **NEW:** Bidirectional communication lets you control the bot (Start/Pause/Resume/Stop) from the UI
 
-**Alternative approaches that don't work:**
-- ❌ AutoHotkey/AutoIt scripts - Too fragile and dependent on UI layout
-- ❌ DeSmuME command-line flags - No such flags exist for Lua
-- ❌ DeSmuME API - No external API exists
-- ❌ Modified DeSmuME build - Would require maintaining a custom fork
+**What improved with the new system:**
+- ❌ ~~Type `automationLoop()` in Lua console~~
+- ✅ **Just click "Start Automation" button in the UI!**
+
+The only manual step is loading the Lua script file in DeSmuME (Step 4), which takes ~10 seconds and is shown clearly in the step-by-step guide.
 
 ## Why use relative paths in Lua?
 
