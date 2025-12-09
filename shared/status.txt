@@ -1,5 +1,5 @@
 STATUS=READY
-ATTEMPTS=0
-ENCOUNTERS=0
-NON_MAGIKARP=0
-DETAILS=Lua script loaded. Waiting for START command from UI
+ATTEMPTS=13
+ENCOUNTERS=5
+NON_MAGIKARP=5
+DETAILS=Ready for next command

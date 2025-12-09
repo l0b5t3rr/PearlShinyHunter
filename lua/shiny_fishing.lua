@@ -377,18 +377,20 @@ function waitForBattleOrNoBite()
     end
     
     -- Fishing state still non-zero, assume battle is loading
-    print(">>> Fishing state non-zero - battle loading, waiting for state to stabilize...")
-    writeLog(string.format("Fishing state = %d - battle loading, waiting for stabilization", fishState))
+    print(">>> Fishing state non-zero - battle loading, waiting for state to stabilize at 0...")
+    writeLog(string.format("Fishing state = %d - battle loading, waiting for state to reach 0", fishState))
     writeStatus("BATTLE_LOADING", "Battle detected, waiting for load to complete...")
     
-    -- Wait for fishing state to stabilize (no changes for 10 frames)
-    local stableFramesNeeded = 10
+    -- Wait for fishing state to reach 0 AND stabilize (no changes for 30 frames)
+    -- State 0 = battle fully loaded and ready for input
+    local stableFramesNeeded = 30  -- 0.5 seconds of stability
     local stableFrameCount = 0
     local lastState = fishState
     local totalFrames = 0
     local maxWaitFrames = 720  -- Safety timeout: 12 seconds
+    local reachedZero = false
     
-    while stableFrameCount < stableFramesNeeded and totalFrames < maxWaitFrames do
+    while totalFrames < maxWaitFrames do
         emu.frameadvance()
         totalFrames = totalFrames + 1
         
@@ -401,22 +403,30 @@ function waitForBattleOrNoBite()
             writeLog(msg)
             stableFrameCount = 0
             lastState = currentState
+            
+            if currentState == 0 then
+                reachedZero = true
+            end
         else
             -- State unchanged, increment stable counter
             stableFrameCount = stableFrameCount + 1
+            
+            -- Only accept stability if we're at state 0 (battle loaded)
+            if currentState == 0 and stableFrameCount >= stableFramesNeeded then
+                print(string.format(">>> Battle fully loaded! State stable at 0 after %d frames (~%.1f seconds)", 
+                    totalFrames, totalFrames / 60.0))
+                writeLog(string.format("Battle fully loaded - state stable at 0 after %d frames", totalFrames))
+                return true
+            end
         end
     end
     
-    if stableFrameCount >= stableFramesNeeded then
-        print(string.format(">>> Battle loaded! State stabilized at %d after %d frames (~%.1f seconds)", 
-            lastState, totalFrames, totalFrames / 60.0))
-        writeLog(string.format("Battle fully loaded - state stable at %d after %d frames", lastState, totalFrames))
-    else
-        print(string.format(">>> Timeout reached after %d frames, proceeding anyway", totalFrames))
-        writeLog(string.format("Battle load timeout after %d frames", totalFrames))
-    end
+    -- Timeout reached
+    print(string.format(">>> Timeout reached after %d frames (reached 0: %s, final state: %d)", 
+        totalFrames, tostring(reachedZero), lastState))
+    writeLog(string.format("Battle load timeout after %d frames - state: %d", totalFrames, lastState))
     
-    return true  -- Battle started
+    return true  -- Battle started (proceed anyway)
 end
 
 -- Check the encountered Pokémon
