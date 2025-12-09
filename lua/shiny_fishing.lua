@@ -377,12 +377,44 @@ function waitForBattleOrNoBite()
     end
     
     -- Fishing state still non-zero, assume battle is loading
-    print(">>> Fishing state non-zero - battle assumed, waiting to fully load...")
-    writeLog(string.format("Fishing state = %d - battle loading", fishState))
-    writeStatus("BATTLE_LOADING", "Battle detected, waiting to fully load...")
+    print(">>> Fishing state non-zero - battle loading, waiting for state to stabilize...")
+    writeLog(string.format("Fishing state = %d - battle loading, waiting for stabilization", fishState))
+    writeStatus("BATTLE_LOADING", "Battle detected, waiting for load to complete...")
     
-    -- Wait for battle to fully load (12 seconds = 720 frames)
-    waitFrames(720)
+    -- Wait for fishing state to stabilize (no changes for 10 frames)
+    local stableFramesNeeded = 10
+    local stableFrameCount = 0
+    local lastState = fishState
+    local totalFrames = 0
+    local maxWaitFrames = 720  -- Safety timeout: 12 seconds
+    
+    while stableFrameCount < stableFramesNeeded and totalFrames < maxWaitFrames do
+        emu.frameadvance()
+        totalFrames = totalFrames + 1
+        
+        local currentState = readByte(MEMORY.FISHING_STATE)
+        
+        if currentState ~= lastState then
+            -- State changed, reset stable counter and log it
+            local msg = string.format("Frame %d: Fishing state changed %d -> %d", totalFrames, lastState, currentState)
+            print(msg)
+            writeLog(msg)
+            stableFrameCount = 0
+            lastState = currentState
+        else
+            -- State unchanged, increment stable counter
+            stableFrameCount = stableFrameCount + 1
+        end
+    end
+    
+    if stableFrameCount >= stableFramesNeeded then
+        print(string.format(">>> Battle loaded! State stabilized at %d after %d frames (~%.1f seconds)", 
+            lastState, totalFrames, totalFrames / 60.0))
+        writeLog(string.format("Battle fully loaded - state stable at %d after %d frames", lastState, totalFrames))
+    else
+        print(string.format(">>> Timeout reached after %d frames, proceeding anyway", totalFrames))
+        writeLog(string.format("Battle load timeout after %d frames", totalFrames))
+    end
     
     return true  -- Battle started
 end
