@@ -1,7 +1,8 @@
 
 local MEMORY = {
-    FISHING_STATE = 0x021C4D84,  -- Fishing state indicator (0 = not fishing, 1 = rod cast, 2 = bite)
+    FISHING_STATE = 0x021D5E03,  -- Fishing state indicator (0 = not fishing, 1 = rod cast, 2 = bite)
     BATTLE_FLAG = 0x021C6094,     -- Battle indicator (0 = no battle, 1 = in battle)
+    BITE_FLAG = 0x021D5E03,       -- Bite detection flag (0 = no bite, 1 = bite "!" appears) - Diamond/Pearl US
     ENCOUNTER_SLOT = 0x0226AAEC,  -- Current encounter data structure
     PARTY_POKEMON_1 = 0x022349B4, -- First Pokémon in party (for TID/SID)
     
@@ -13,6 +14,28 @@ local MEMORY = {
 local MAGIKARP_ID = 129
 local SAVESTATE_SLOT = 1
 
+-- =====================================================
+-- Screen Detection Configuration
+-- =====================================================
+
+-- Exclamation mark detection zones (DS screens are 256x192 each)
+-- The "!" appears in the center-bottom area of the top screen during fishing
+local SCREEN_DETECT = {
+    -- Sample points around where the "!" appears (adjust based on testing)
+    EXCLAIM_POINTS = {
+        {x = 128, y = 140},  -- Center point
+        {x = 126, y = 138},  -- Top-left
+        {x = 130, y = 138},  -- Top-right
+        {x = 126, y = 142},  -- Bottom-left
+        {x = 130, y = 142},  -- Bottom-right
+    },
+    
+    -- Color threshold for exclamation mark detection
+    -- The "!" is typically white/bright yellow (high RGB values)
+    BRIGHTNESS_THRESHOLD = 200,  -- Minimum brightness (0-255)
+    MIN_BRIGHT_PIXELS = 3,       -- Minimum number of bright pixels to confirm "!"
+}
+
 -- Get script directory and build relative path to shared folder
 local scriptPath = debug.getinfo(1, "S").source:sub(2)
 local scriptDir = scriptPath:match("(.*/)")
@@ -23,6 +46,7 @@ if not scriptDir then
     scriptDir = ""
 end
 local STATUS_FILE = scriptDir .. "..\\shared\\status.txt"
+local LOG_FILE = scriptDir .. "..\\shared\\log_" .. os.date("%Y%m%d") .. ".txt"
 
 -- Statistics
 local stats = {
@@ -52,6 +76,12 @@ function readDword(address)
 end
 
 -- =====================================================
+-- Screen Detection Functions
+-- =====================================================
+
+-- Screen detection functions removed - DeSmuME doesn't support emu.getscreenpixel()
+
+-- =====================================================
 -- Game State Detection
 -- =====================================================
 
@@ -61,17 +91,16 @@ function isFishing()
     return fishState > 0
 end
 
--- Check if a bite occurred
-function hasBite()
+-- Check if a bite occurred (fishing state changes from previous value)
+-- We need to detect when the value CHANGES, not just when it's non-zero
+function hasBite(previousState)
     local fishState = readByte(MEMORY.FISHING_STATE)
-    return fishState == 2
+    -- Bite occurs when state changes AND is non-zero
+    -- This filters out the initial cast (previousState would be 0)
+    return fishState ~= 0 and fishState ~= previousState and previousState ~= 0
 end
 
--- Check if in battle
-function isInBattle()
-    local battleFlag = readByte(MEMORY.BATTLE_FLAG)
-    return battleFlag == 1
-end
+-- No reliable battle flag available - use timing-based detection instead
 
 -- =====================================================
 -- Encounter Analysis
@@ -121,6 +150,33 @@ function pressButton(button)
     joypad.set(1, {[button] = false})
 end
 
+-- Click on the touch screen at specific coordinates
+function touchScreen(x, y, frames)
+    frames = frames or 1
+    for i = 1, frames do
+        stylus.set({touch = true, x = x, y = y})
+        emu.frameadvance()
+    end
+    stylus.set({touch = false})
+    emu.frameadvance()
+end
+
+-- Click the Run button in battle (bottom center of touch screen)
+function clickRunButton()
+    print("Clicking Run button on touch screen...")
+    writeLog("Clicking Run button at coordinates (128, 170)")
+    
+    -- Run button is in bottom center of screen
+    -- DS screen is 256x192, so center is 128
+    -- Bottom area is around y=170-180
+    -- Click slightly above center of button to ensure hit
+    touchScreen(128, 170, 3)  -- Hold for 3 frames
+    waitFrames(10)
+    
+    -- Click again to confirm if needed
+    touchScreen(128, 170, 3)
+end
+
 -- Wait for a number of frames
 function waitFrames(frames)
     for i = 1, frames do
@@ -147,55 +203,188 @@ function writeStatus(status, details)
     end
 end
 
--- =====================================================
--- Savestate Management
--- =====================================================
-
--- Reload the savestate to reset
-function resetToSavestate()
-    savestate.load(SAVESTATE_SLOT)
-    waitFrames(30)  -- Wait for state to stabilize
+-- Write to activity log (appends) - matches C# format
+function writeLog(message)
+    local file = io.open(LOG_FILE, "a")
+    if file then
+        file:write(string.format("[%s] %s\n", os.date("%Y-%m-%d %H:%M:%S"), message))
+        file:close()
+    end
 end
+
+-- =====================================================
+-- No savestate reloading - natural RNG advancement
+-- =====================================================
+-- RNG advances naturally through game actions (fleeing, dismissing messages, etc.)
 
 -- =====================================================
 -- Main Automation Logic
 -- =====================================================
 
+-- Dismiss the "nothing seems to be biting" message
+function dismissNoBiteMessage()
+    print("Dismissing 'nothing seems to be biting' message...")
+    writeStatus("NO_BITE_MSG", "Dismissing no bite message")
+    writeLog("Dismissing no bite message")
+    
+    -- Press A multiple times to get through the dialog
+    for i = 1, 5 do
+        pressButton("A")
+        waitFrames(10)
+    end
+    
+    -- Extra wait to ensure we're back to overworld
+    waitFrames(30)
+end
+
+-- Flee from battle using touch screen to click Run button
+function fleeFromBattle()
+    print("Fleeing from battle...")
+    writeStatus("FLEEING", "Fleeing from non-shiny encounter")
+    writeLog("Fleeing from battle")
+    
+    -- Wait for battle to FULLY load (can take ~12 seconds)
+    print("Waiting for battle to fully load...")
+    writeLog("Waiting 12 seconds for battle to fully load")
+    waitFrames(720)  -- 12 seconds at 60fps
+    
+    -- Click the Run button directly on touch screen
+    clickRunButton()
+    waitFrames(30)
+    
+    -- Click again to confirm/ensure it registered
+    clickRunButton()
+    waitFrames(30)
+    
+    -- Wait for flee animation and return to overworld
+    print("Waiting for flee animation...")
+    waitFrames(180)
+    
+    -- Press A a few more times to clear any remaining text
+    for i = 1, 5 do
+        pressButton("A")
+        waitFrames(10)
+    end
+    
+    -- Wait additional time to ensure fully back in overworld before next cast
+    print("Waiting to ensure fully returned to overworld...")
+    waitFrames(120)  -- Extra 2 seconds
+    
+    print("Returned to overworld")
+    writeLog("Flee complete, back to overworld")
+end
+
 -- Cast the fishing rod
 function castRod()
+    print("Casting fishing rod (attempt #" .. (stats.totalAttempts + 1) .. ")...")
     writeStatus("CASTING", "Casting fishing rod...")
     
-    -- Press A to use rod (adjust timing as needed)
-    pressButton("A")
-    waitFrames(60)  -- Wait for rod cast animation
+    -- Press Y multiple times to ensure it registers (rod from registered items)
+    pressButton("Y")
+    waitFrames(10)
+    pressButton("Y")
+    waitFrames(90)  -- Wait for rod cast animation to complete
     
     stats.totalAttempts = stats.totalAttempts + 1
 end
 
--- Wait for a bite with timeout
-function waitForBite(maxWaitFrames)
-    local framesWaited = 0
+-- Wait for bite using fishing state and press A immediately when bite window opens
+function waitForBite()
+    print("Waiting for bite (monitoring fishing state changes)...")
+    writeStatus("FISHING", "Waiting for bite...")
     
-    while framesWaited < maxWaitFrames do
-        if hasBite() then
-            return true
+    -- Track previous fishing state to detect changes
+    local previousState = 0
+    
+    -- Wait for initial rod cast state to stabilize
+    waitFrames(30)
+    previousState = readByte(MEMORY.FISHING_STATE)
+    print("Initial fishing state after cast: " .. previousState)
+    
+    -- Now monitor for state CHANGES (indicating bite)
+    while true do
+        local currentState = readByte(MEMORY.FISHING_STATE)
+        
+        -- Log any state change for debugging
+        if currentState ~= previousState then
+            print("Fishing state changed: " .. previousState .. " -> " .. currentState)
+            writeLog("Fishing state changed: " .. previousState .. " -> " .. currentState)
+            
+            -- Any change from the initial state indicates bite
+            print(">>> BITE DETECTED! First state change detected")
+            writeStatus("BITE", "Bite detected! Reeling in...")
+            writeLog("Bite detected - first state change from " .. previousState .. " to " .. currentState)
+            
+            -- Wait 5 frames after detecting the change
+            waitFrames(5)
+            
+            -- Press A multiple times to ensure it registers (same pattern as castRod)
+            print(">>> PRESSING A NOW...")
+            writeLog("Pressing A button")
+            pressButton("A")
+            waitFrames(2)
+            pressButton("A")
+            waitFrames(2)
+            pressButton("A")
+            
+            -- Wait for result message to appear (either "hooked" or "nothing biting")
+            print(">>> Waiting for result message...")
+            writeLog("Waiting for result message")
+            waitFrames(60)
+            
+            -- Dismiss the dialog by pressing A multiple times
+            -- This works for both "hooked" and "nothing biting" messages
+            print(">>> Dismissing dialog...")
+            writeLog("Dismissing dialog message")
+            for i = 1, 5 do
+                pressButton("A")
+                waitFrames(10)
+            end
+            
+            -- Assume battle is starting after dismissing dialog
+            -- We'll know for sure based on whether encounter check works
+            print(">>> Dialog dismissed, assuming battle is starting...")
+            writeLog("Dialog dismissed - proceeding to encounter check")
+            waitFrames(30)
+            return true  -- Always return true, let the encounter logic handle it
         end
+        
+        -- Update previous state
+        previousState = currentState
         emu.frameadvance()
-        framesWaited = framesWaited + 1
     end
-    
-    return false  -- Timeout, no bite
 end
 
--- Trigger the encounter
-function triggerEncounter()
-    writeStatus("ENCOUNTER", "Bite detected! Triggering encounter...")
+-- Detect if battle is starting with single immediate check
+-- "Nothing bit" = fishing state returns to 0 immediately
+-- Battle starting = fishing state still non-zero
+function waitForBattleOrNoBite()
+    print(">>> Checking if battle is starting...")
+    writeStatus("CHECKING", "Checking for battle vs no-bite...")
+    writeLog("Checking fishing state to detect battle vs no-bite")
     
-    -- Press A at the right time to hook the Pokémon
-    -- Timing is critical - may need adjustment
-    waitFrames(10)
-    pressButton("A")
-    waitFrames(180)  -- Wait for battle to start
+    -- Wait a moment for state to settle after dialog dismissal
+    waitFrames(30)
+    
+    local fishState = readByte(MEMORY.FISHING_STATE)
+    print(string.format("Fishing state check: %d", fishState))
+    
+    -- If fishing state is 0, we're back in overworld (nothing bit)
+    if fishState == 0 then
+        print(">>> Fishing state = 0, no battle (nothing bit)")
+        writeLog("Fishing state = 0 - no battle occurred")
+        return false
+    end
+    
+    -- Fishing state still non-zero, assume battle is loading
+    print(">>> Fishing state non-zero - battle assumed, waiting to fully load...")
+    writeLog(string.format("Fishing state = %d - battle loading", fishState))
+    writeStatus("BATTLE_LOADING", "Battle detected, waiting to fully load...")
+    
+    -- Wait for battle to fully load (12 seconds = 720 frames)
+    waitFrames(720)
+    
+    return true  -- Battle started
 end
 
 -- Check the encountered Pokémon
@@ -328,17 +517,21 @@ end
 
 -- Modified automation loop with pause support
 function automationLoopWithPause()
-    writeStatus("STARTING", "Creating savestate and starting automation...")
+    -- Set emulator to 400% speed for faster automation
+    emu.speedmode("turbo")
+    print("Emulator speed set to 400% (turbo mode)")
+    writeLog("Emulator speed set to 400% for automation")
     
-    -- Create savestate automatically
-    savestate.save(SAVESTATE_SLOT)
-    waitFrames(30)  -- Wait for savestate to complete
-    writeStatus("SAVESTATE_CREATED", "Savestate created in slot 1. Beginning hunt...")
+    writeStatus("STARTING", "Starting automation (natural RNG progression)...")
+    writeLog("Starting automation - will flee from non-shiny battles to advance RNG naturally")
     
     while not stats.shinyFound do
         -- Check for pause/stop commands
         local cmd = processCommands()
         if cmd == "STOP" then
+            emu.speedmode("normal")
+            print("Automation stopped - speed reset to normal")
+            writeLog("Automation stopped - speed reset to normal")
             return  -- Exit completely
         end
         
@@ -349,6 +542,8 @@ function automationLoopWithPause()
             if resumeCmd == "RESUME" then
                 break
             elseif resumeCmd == "STOP" then
+                emu.speedmode("normal")
+                print("Automation stopped - speed reset to normal")
                 return
             end
         end
@@ -356,31 +551,35 @@ function automationLoopWithPause()
         -- Cast the rod
         castRod()
         
-        -- Wait for a bite (timeout after 10 seconds = ~600 frames at 60fps)
-        local gotBite = waitForBite(600)
+        -- Wait for bite using fishing state detection
+        waitForBite()  -- Always returns true after detecting state change
         
-        if not gotBite then
-            writeStatus("NO_BITE", "No bite. Recasting...")
-            resetToSavestate()
+        -- Now check if we're actually entering battle or if nothing bit
+        local gotBattle = waitForBattleOrNoBite()
+        
+        if not gotBattle then
+            writeStatus("NO_BITE", "Nothing bit. Dismissing message and trying again...")
+            print("No battle detected, dismissing message...")
+            dismissNoBiteMessage()
         else
-            -- Trigger the encounter
-            triggerEncounter()
-            
-            -- Check if it's a shiny Magikarp
+            -- We're in battle! Check if it's a shiny Magikarp
             local isShinyMagikarp = checkEncounter()
             
             if not isShinyMagikarp then
-                -- Reset and try again
-                resetToSavestate()
+                -- Flee from battle to advance RNG naturally
+                fleeFromBattle()
             else
-                -- SHINY FOUND! Pause execution
+                -- SHINY FOUND! Reset speed and pause execution
+                emu.speedmode("normal")
+                print("SHINY FOUND! Emulator speed reset to normal")
+                writeLog("Shiny found! Speed reset to normal")
                 writeStatus("PAUSED", "SHINY FOUND! Automation paused.")
                 return  -- Exit the loop
             end
         end
         
         -- Small delay between attempts
-        waitFrames(30)
+        waitFrames(20)
     end
 end
 
@@ -393,7 +592,8 @@ function commandMonitorLoop()
             -- Start the automation
             automationLoopWithPause()
             
-            -- After automation ends, go back to monitoring
+            -- After automation ends, reset speed and go back to monitoring
+            emu.speedmode("normal")
             if not stats.shinyFound then
                 writeStatus("READY", "Ready for next command")
             end
