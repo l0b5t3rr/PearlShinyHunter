@@ -1,7 +1,7 @@
 using System;
 using System.IO;
 
-namespace ShinyAutomation
+namespace DPPShinyHunter
 {
     public class Logger
     {

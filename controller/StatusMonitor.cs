@@ -3,7 +3,7 @@ using System.IO;
 using System.Threading;
 using System.Threading.Tasks;
 
-namespace ShinyAutomation
+namespace DPPShinyHunter
 {
     public class StatusMonitor
     {

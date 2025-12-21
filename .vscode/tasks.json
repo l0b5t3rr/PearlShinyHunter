@@ -7,7 +7,7 @@
             "type": "process",
             "args": [
                 "build",
-                "${workspaceFolder}/controller/ShinyAutomation.csproj",
+                "${workspaceFolder}/controller/DPPShinyHunter.csproj",
                 "/property:GenerateFullPaths=true",
                 "/consoleloggerparameters:NoSummary;ForceNoAlign"
             ],
@@ -23,7 +23,7 @@
             "type": "process",
             "args": [
                 "publish",
-                "${workspaceFolder}/controller/ShinyAutomation.csproj",
+                "${workspaceFolder}/controller/DPPShinyHunter.csproj",
                 "/property:GenerateFullPaths=true",
                 "/consoleloggerparameters:NoSummary;ForceNoAlign"
             ],
@@ -37,7 +37,7 @@
                 "watch",
                 "run",
                 "--project",
-                "${workspaceFolder}/controller/ShinyAutomation.csproj"
+                "${workspaceFolder}/controller/DPPShinyHunter.csproj"
             ],
             "problemMatcher": "$msCompile"
         },
@@ -47,7 +47,7 @@
             "type": "process",
             "args": [
                 "clean",
-                "${workspaceFolder}/controller/ShinyAutomation.csproj",
+                "${workspaceFolder}/controller/DPPShinyHunter.csproj",
                 "/property:GenerateFullPaths=true",
                 "/consoleloggerparameters:NoSummary;ForceNoAlign"
             ],

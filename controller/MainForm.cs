@@ -6,7 +6,7 @@ using System.Media;
 using System.Threading;
 using System.Threading.Tasks;
 
-namespace ShinyAutomation
+namespace DPPShinyHunter
 {
     public partial class MainForm : Form
     {
@@ -64,7 +64,7 @@ namespace ShinyAutomation
 
         private void InitializeComponent()
         {
-            this.Text = "Pokémon Pearl Shiny Hunter";
+            this.Text = "DPP Shiny Hunter";
             this.Size = new Size(850, 700);
             this.StartPosition = FormStartPosition.CenterScreen;
             this.MinimumSize = new Size(850, 700);

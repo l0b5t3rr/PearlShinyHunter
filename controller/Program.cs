@@ -1,7 +1,7 @@
 using System;
 using System.Windows.Forms;
 
-namespace ShinyAutomation
+namespace DPPShinyHunter
 {
     internal static class Program
     {

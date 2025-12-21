@@ -23,11 +23,11 @@ This project automates the tedious process of shiny hunting Magikarp in Pokémon
 ## Project Structure
 
 ```
-PearlShinyHunter/
+DPPShinyHunter/
 ├── lua/
 │   └── shiny_fishing.lua       # Main Lua automation script
 ├── controller/
-│   ├── ShinyAutomation.csproj  # C# project file
+│   ├── DPPShinyHunter.csproj  # C# project file
 │   ├── Program.cs               # Application entry point
 │   ├── MainForm.cs              # Main UI window
 │   ├── StatusMonitor.cs         # Monitors Lua script output
