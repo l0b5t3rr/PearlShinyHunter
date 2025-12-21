@@ -1,0 +1,31 @@
+{
+    "version": "0.2.0",
+    "configurations": [
+        {
+            "name": "Launch Shiny Hunter Controller",
+            "type": "coreclr",
+            "request": "launch",
+            "preLaunchTask": "build",
+            "program": "${workspaceFolder}/controller/bin/Debug/net8.0-windows/ShinyAutomation.dll",
+            "args": [],
+            "cwd": "${workspaceFolder}/controller",
+            "console": "internalConsole",
+            "stopAtEntry": false
+        },
+        {
+            "name": "Launch Shiny Hunter Controller (No Build)",
+            "type": "coreclr",
+            "request": "launch",
+            "program": "${workspaceFolder}/controller/bin/Debug/net8.0-windows/ShinyAutomation.dll",
+            "args": [],
+            "cwd": "${workspaceFolder}/controller",
+            "console": "internalConsole",
+            "stopAtEntry": false
+        },
+        {
+            "name": "Attach to Process",
+            "type": "coreclr",
+            "request": "attach"
+        }
+    ]
+}
