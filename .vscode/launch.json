@@ -1,31 +1,96 @@
 {
-    "version": "0.2.0",
-    "configurations": [
+  "version": "0.2.0",
+  "configurations": [
+    {
+      "name": "Launch Shiny Hunter Controller",
+      "type": "coreclr",
+      "request": "launch",
+      "preLaunchTask": "build",
+      "program": "${workspaceFolder}/controller/bin/Debug/net8.0-windows/DPPShinyHunter.dll",
+      "args": [],
+      "cwd": "${workspaceFolder}/controller",
+      "console": "internalConsole",
+      "stopAtEntry": false
+    },
+    {
+      "name": "Launch Shiny Hunter Controller (No Build)",
+      "type": "coreclr",
+      "request": "launch",
+      "program": "${workspaceFolder}/controller/bin/Debug/net8.0-windows/DPPShinyHunter.dll",
+      "args": [],
+      "cwd": "${workspaceFolder}/controller",
+      "console": "internalConsole",
+      "stopAtEntry": false
+    },
+    {
+      "name": "Attach to Process",
+      "type": "coreclr",
+      "request": "attach"
+    },
+    {
+      "name": "C/C++ Runner: Debug Session",
+      "type": "cppdbg",
+      "request": "launch",
+      "args": [],
+      "stopAtEntry": false,
+      "externalConsole": true,
+      "cwd": "e:/PearlShinyHunter",
+      "program": "e:/PearlShinyHunter/build/Debug/outDebug",
+      "MIMode": "gdb",
+      "miDebuggerPath": "gdb",
+      "setupCommands": [
         {
-            "name": "Launch Shiny Hunter Controller",
-            "type": "coreclr",
-            "request": "launch",
-            "preLaunchTask": "build",
-            "program": "${workspaceFolder}/controller/bin/Debug/net8.0-windows/DPPShinyHunter.dll",
-            "args": [],
-            "cwd": "${workspaceFolder}/controller",
-            "console": "internalConsole",
-            "stopAtEntry": false
-        },
-        {
-            "name": "Launch Shiny Hunter Controller (No Build)",
-            "type": "coreclr",
-            "request": "launch",
-            "program": "${workspaceFolder}/controller/bin/Debug/net8.0-windows/DPPShinyHunter.dll",
-            "args": [],
-            "cwd": "${workspaceFolder}/controller",
-            "console": "internalConsole",
-            "stopAtEntry": false
-        },
-        {
-            "name": "Attach to Process",
-            "type": "coreclr",
-            "request": "attach"
+          "description": "Enable pretty-printing for gdb",
+          "text": "-enable-pretty-printing",
+          "ignoreFailures": true
         }
-    ]
+      ]
+    }
+    ,
+    {
+      "name": "Launch Published (Release) - Run",
+      "type": "coreclr",
+      "request": "launch",
+      "preLaunchTask": "Publish DPPShinyHunter (Release, win-x64)",
+      "program": "${workspaceFolder}/controller/bin/Release/net8.0-windows/publish/DPPShinyHunter.exe",
+      "args": [],
+      "cwd": "${workspaceFolder}/controller/bin/Release/net8.0-windows/publish",
+      "console": "internalConsole",
+      "stopAtEntry": false
+    },
+    {
+      "name": "Launch Published (Self-contained) - Run",
+      "type": "coreclr",
+      "request": "launch",
+      "preLaunchTask": "Publish (self-contained, win-x64)",
+      "program": "${workspaceFolder}/controller/bin/Release/net8.0-windows/publish-selfcontained/DPPShinyHunter.exe",
+      "args": [],
+      "cwd": "${workspaceFolder}/controller/bin/Release/net8.0-windows/publish-selfcontained",
+      "console": "internalConsole",
+      "stopAtEntry": false
+    }
+    ,
+    {
+      "name": "Publish Only (Release)",
+      "type": "cppvsdbg",
+      "request": "launch",
+      "preLaunchTask": "Publish DPPShinyHunter (Release, win-x64)",
+      "program": "C:\\Windows\\System32\\cmd.exe",
+      "args": ["/c", "exit", "0"],
+      "cwd": "${workspaceFolder}",
+      "console": "externalTerminal",
+      "stopAtEntry": false
+    },
+    {
+      "name": "Publish Only (Self-contained)",
+      "type": "cppvsdbg",
+      "request": "launch",
+      "preLaunchTask": "Publish (self-contained, win-x64)",
+      "program": "C:\\Windows\\System32\\cmd.exe",
+      "args": ["/c", "exit", "0"],
+      "cwd": "${workspaceFolder}",
+      "console": "externalTerminal",
+      "stopAtEntry": false
+    }
+  ]
 }

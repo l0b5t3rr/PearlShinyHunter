@@ -37,12 +37,8 @@ bld/
 *.sln.docstates
 
 # Logs and Runtime Files
-shared/log_*.txt
-shared/shiny_encounters.txt
-shared/user_settings.json
-shared/stats.json
-shared/status.txt
-shared/command.txt
+# Ignore entire shared folder (runtime files created by controller/Lua). Keep config templates out if needed.
+shared/
 
 # Keep config.json as a template; status/command/stats are runtime files
 

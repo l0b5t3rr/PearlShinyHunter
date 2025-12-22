@@ -14,12 +14,21 @@
     <PackageReference Include="Newtonsoft.Json" Version="13.0.3" />
   </ItemGroup>
 
+  <!-- Note: shared files are created at runtime by the app or Lua script. Avoid publishing user logs/settings. -->
+
   <ItemGroup>
     <Content Include="../lua\**\*">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
       <CopyToPublishDirectory>Always</CopyToPublishDirectory>
       <Pack>false</Pack>
+      <TargetPath>lua\%(RecursiveDir)%(Filename)%(Extension)</TargetPath>
     </Content>
+    <!-- Ensure lua51.dll (if present at repo root or lua folder) is copied into publish\lua -->
+    <None Include="../lua\lua51.dll">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+      <CopyToPublishDirectory>Always</CopyToPublishDirectory>
+      <TargetPath>lua\lua51.dll</TargetPath>
+    </None>
   </ItemGroup>
 
 </Project>

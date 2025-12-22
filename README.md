@@ -1,16 +1,48 @@
-Pokemon DPP Shiny Magikarp Hunter
+Pearl Shiny Hunter — Quick Start (for non-programmers)
 
-An automated shiny hunting tool for Gen4 DS pokemon games using the DeSmuME emulator with a Lua script and a C# Windows Forms controller application.
+This package contains a small Windows controller application that automates fishing checks in Pokémon Pearl (runs alongside DeSmuME). If you just want to run the program and avoid code or build steps, follow the instructions below.
 
 This project was largely made with the intent of trying out a nearly fully "Vibe coded" project using VSCode integrated Copilot to see how it would do without need to work around existing code or company conventions.
 
-Usage and Quick Start
 
-Prerequisites
+Download & extract
 
-- DeSmuME emulator (with Lua scripting enabled)
-- Pokemon Diamond Pearl or Platinum ROM (US recommended)
- 
+- Go to the repository's Releases page on GitHub and download the latest publish ZIP (named like `DPPShinyHunter-publish.zip`).
+- Extract the ZIP to a folder you control (for example `C:\Users\You\Downloads\DPPShinyHunter`).
+What you should see inside the extracted folder
+
+- `DPPShinyHunter.exe` — the controller application you run on Windows
+- Several `.dll` files the app needs (framework-dependent publish)
+- A `lua` folder containing `shiny_fishing.lua` and `lua51.dll`
+
+Requirements
+
+- Windows with the matching .NET runtime installed (framework-dependent publish). If the Release you downloaded is framework-dependent the user must install the appropriate .NET runtime (e.g., .NET 8) from https://dotnet.microsoft.com/download.
+- DeSmuME emulator (with Lua scripting enabled) and a legally obtained Pokémon ROM.
+
+Quick run steps (end-user)
+
+1. Ensure you have the .NET runtime installed (if the release is framework-dependent).
+2. Start DeSmuME and load your Pokémon Pearl ROM.
+3. In the extracted publish folder, double-click `DPPShinyHunter.exe` to start the controller application.
+4. In DeSmuME go to Tools → Lua Scripting → Load `lua/shiny_fishing.lua` from the included `lua` folder.
+5. Make a manual savestate in slot 1 inside DeSmuME (the Lua script uses slot 1 for fast reloads).
+6. Use the controller UI to start monitoring/automation (the app can also be controlled by writing `START` to the `shared/command.txt` file if needed).
+
+Troubleshooting
+
+- If `DPPShinyHunter.exe` fails to start and complains about missing .NET runtime, install the appropriate .NET runtime from https://dotnet.microsoft.com/download and try again.
+- If the Lua script in DeSmuME reports missing `lua51.dll`, copy `lua51.dll` from the included `lua` folder into your emulator directory or make sure the script is loaded from the included `lua` folder (both files should be together).
+
+Distributing to others
+
+- Attach the publish ZIP (the publish folder contents) to a GitHub Release, or upload the ZIP to your distribution channel. Make sure to mention the .NET runtime requirement when sharing the package.
+
+License & acknowledgments
+
+- This project is provided for educational purposes. Respect game copyrights and only use with legally obtained ROMs.
+- Lua memory-reading concepts used here were inspired by examples from the PokeLua project: https://github.com/Real96/PokeLua
+
 
 Steps
 
@@ -29,28 +61,34 @@ dotnet run --project controller/DPPShinyHunter.csproj
 
 5. In the controller UI click "Start Monitoring" and then "Start Automation" (or write `START` to `shared/command.txt`).
 
-Getting the executable (for non-programmers)
+Getting the executable (recommended: use the framework-dependent publish)
 
-- Download from GitHub Actions: this repository's workflow produces a self-contained Windows publish and uploads it as an artifact named `DPPShinyHunter-publish`. To download the latest build go to Actions → select the latest `Build and Publish` run → download the `DPPShinyHunter-publish` artifact and extract it. The extracted folder contains `DPPShinyHunter.exe` and the `shiny_fishing.lua` script.
-- Local publish (if you want to build locally): use the included VS Code task or run the publish command manually (PowerShell):
+
+
+- Download from GitHub Releases (recommended):
+	1. On GitHub, go to the repository Releases page.
+	2. Download the attached publish ZIP for the latest release (the artifact should be named similar to `DPPShinyHunter-publish.zip`).
+	3. Extract the ZIP — you should see a folder containing `DPPShinyHunter.exe` and supporting DLLs.
+
+- Local publish (if you want to build locally): use the included VS Code task or run the publish command manually (PowerShell) to produce the framework-dependent publish:
 
 ```powershell
 dotnet restore controller/DPPShinyHunter.csproj
-dotnet publish controller/DPPShinyHunter.csproj -c Release -r win-x64 -p:SelfContained=true -o controller/bin/Release/net8.0-windows/publish-selfcontained
-```
 
-- VS Code task: open the Command Palette → Tasks: Run Task → choose `Publish (self-contained, win-x64)` to produce the same publish folder.
 
-- What's included in the publish folder
 
-- `DPPShinyHunter.exe` and the .NET runtime files required to run it (self-contained)
-- `shiny_fishing.lua` (copied from the repo `lua` folder so DeSmuME can load it)
-- `lua51.dll` (if required) and any native files the app needs at runtime
-- Note: the ROM itself is not included and must be supplied by you.
+- **.NET runtime**: Users must have the matching .NET runtime (for example, .NET 8) installed. If they do not have it, they can download it from https://dotnet.microsoft.com/download.
+- **Lua files**: The publish output includes a `lua` subfolder with `shiny_fishing.lua` and `lua51.dll`. Keep that `lua` folder together with the published app. DeSmuME expects the Lua script file to be provided when you open Tools → Lua Scripting. Place `lua51.dll` next to the `shiny_fishing.lua` if your DeSmuME setup needs it.
 
-- Distributing to users
+- Running the app and using the Lua script:
+	1. Extract the publish folder you downloaded.
+	2. Launch `DPPShinyHunter.exe` from the extracted folder.
+	3. In DeSmuME, open Tools → Lua Scripting and load the script from the extracted `lua/shiny_fishing.lua` file.
 
-- For end users, attach the artifact zip to a GitHub Release or provide the zipped artifact downloaded from Actions. Users can extract and run `DPPShinyHunter.exe` without needing to install the .NET runtime, then open DeSmuME → Tools → Lua Scripting → load the provided `shiny_fishing.lua`.
+- Distributing to users:
+
+- Attach the publish ZIP to a GitHub Release (recommended). Provide simple instructions pointing users to install the .NET runtime if they don't have it and to load the `lua/shiny_fishing.lua` from the included `lua` folder in DeSmuME.
+
 
 License and Acknowledgments
 

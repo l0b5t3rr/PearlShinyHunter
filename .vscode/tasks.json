@@ -44,7 +44,10 @@
                 "${workspaceFolder}/controller/bin/Release/net8.0-windows/publish"
             ],
             "problemMatcher": [],
-            "group": "build",
+            "group": {
+                "kind": "build",
+                "isDefault": false
+            },
             "presentation": {
                 "reveal": "always",
                 "panel": "shared"
@@ -68,7 +71,10 @@
                 "${workspaceFolder}/controller/bin/Release/net8.0-windows/publish-selfcontained"
             ],
             "problemMatcher": [],
-            "group": "build",
+            "group": {
+                "kind": "build",
+                "isDefault": false
+            },
             "presentation": {
                 "reveal": "always",
                 "panel": "shared"

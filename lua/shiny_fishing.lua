@@ -441,6 +441,43 @@ local LOG_FILE = (scriptDir .. "..\\shared\\log_" .. os.date("%Y%m%d") .. ".txt"
 local COMMAND_FILE = scriptDir .. "..\\shared\\command.txt"
 
 -- Diagnostic: print resolved IPC paths so controller and Lua paths can be compared
+-- Ensure shared directory and minimal IPC files exist at runtime so publish doesn't need personal files
+local function ensure_shared_dir_and_files()
+      local sharedDir = scriptDir .. "..\\shared\\"
+      -- normalize: replace forward slashes if present
+      sharedDir = string.gsub(sharedDir, "/", "\\")
+      -- Create directory if missing
+      local ok, err = pcall(function()
+            -- attempt to create directory using Lua file operations
+            local attr = lfs and lfs.attributes(sharedDir) or nil
+      end)
+      -- Use os.execute mkdir as fallback (works on Windows in DeSmuME's environment)
+      if not ok or not package then
+            -- best-effort: try to create directory via os.execute
+            os.execute('mkdir "' .. sharedDir .. '" >nul 2>nul')
+      else
+            os.execute('mkdir "' .. sharedDir .. '" >nul 2>nul')
+      end
+      -- Ensure command and status files exist with minimal content
+      local function ensure_file(path, contents)
+            local f = io.open(path, "r")
+            if f then f:close(); return end
+            local tmp = path .. ".tmp"
+            local w = io.open(tmp, "w")
+            if w then
+                  if contents then w:write(contents) end
+                  w:close()
+                  os.remove(path)
+                  os.rename(tmp, path)
+            end
+      end
+      ensure_file(COMMAND_FILE, "")
+      ensure_file(STATUS_FILE, "STATUS=READY\n")
+end
+
+-- Try to create shared dir and files (best-effort)
+pcall(ensure_shared_dir_and_files)
+
 print(string.format("[Lua] STATUS_FILE => %s", STATUS_FILE))
 print(string.format("[Lua] COMMAND_FILE => %s", COMMAND_FILE))
 
