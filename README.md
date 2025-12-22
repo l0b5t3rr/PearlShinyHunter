@@ -1,6 +1,4 @@
-Pearl Shiny Hunter — Quick Start (for non-programmers)
-
-This package contains a small Windows controller application that automates fishing checks in Pokémon Pearl (runs alongside DeSmuME). If you just want to run the program and avoid code or build steps, follow the instructions below.
+This is a small Windows controller application that automates fishing checks in Pokémon Pearl (runs alongside DeSmuME). If you just want to run the program and avoid code or build steps, follow the instructions below.
 
 This project was largely made with the intent of trying out a nearly fully "Vibe coded" project using VSCode integrated Copilot to see how it would do without need to work around existing conventions of a codebase. As such the code itself might be a bit messy.
 
