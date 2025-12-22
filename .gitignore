@@ -9,6 +9,8 @@ obj/
 # Visual Studio / VS Code
 .vs/
 .vscode/settings.json
+# Ignore user-specific C/C++ configuration (contains local file paths)
+.vscode/c_cpp_properties.json
 # Keep launch.json and tasks.json as they're part of the project setup
 *.user
 *.suo

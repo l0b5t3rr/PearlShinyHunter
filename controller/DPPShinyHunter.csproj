@@ -14,4 +14,12 @@
     <PackageReference Include="Newtonsoft.Json" Version="13.0.3" />
   </ItemGroup>
 
+  <ItemGroup>
+    <Content Include="../lua\**\*">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+      <CopyToPublishDirectory>Always</CopyToPublishDirectory>
+      <Pack>false</Pack>
+    </Content>
+  </ItemGroup>
+
 </Project>

@@ -30,6 +30,51 @@
             "problemMatcher": "$msCompile"
         },
         {
+            "label": "Publish DPPShinyHunter (Release, win-x64)",
+            "type": "process",
+            "command": "dotnet",
+            "args": [
+                "publish",
+                "${workspaceFolder}/controller/DPPShinyHunter.csproj",
+                "-c",
+                "Release",
+                "-r",
+                "win-x64",
+                "-o",
+                "${workspaceFolder}/controller/bin/Release/net8.0-windows/publish"
+            ],
+            "problemMatcher": [],
+            "group": "build",
+            "presentation": {
+                "reveal": "always",
+                "panel": "shared"
+            }
+        },
+        {
+            "label": "Publish (self-contained, win-x64)",
+            "type": "process",
+            "command": "dotnet",
+            "args": [
+                "publish",
+                "${workspaceFolder}/controller/DPPShinyHunter.csproj",
+                "-c",
+                "Release",
+                "-r",
+                "win-x64",
+                "-p:SelfContained=true",
+                "-p:PublishSingleFile=false",
+                "-p:PublishTrimmed=false",
+                "-o",
+                "${workspaceFolder}/controller/bin/Release/net8.0-windows/publish-selfcontained"
+            ],
+            "problemMatcher": [],
+            "group": "build",
+            "presentation": {
+                "reveal": "always",
+                "panel": "shared"
+            }
+        },
+        {
             "label": "watch",
             "command": "dotnet",
             "type": "process",

@@ -1,0 +1,34 @@
+name: Build and Publish
+
+on:
+  push:
+    branches: [ main ]
+  workflow_dispatch:
+
+jobs:
+  publish:
+    runs-on: windows-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v3
+        with:
+          dotnet-version: '8.0.x'
+
+      - name: Restore
+        run: dotnet restore controller/DPPShinyHunter.csproj
+
+      - name: Publish Release (self-contained)
+        run: |
+          dotnet publish controller/DPPShinyHunter.csproj -c Release -r win-x64 -p:SelfContained=true -p:PublishSingleFile=false -p:PublishTrimmed=false -o publish
+
+      - name: List publish output
+        run: dir publish
+
+      - name: Archive publish output
+        uses: actions/upload-artifact@v4
+        with:
+          name: DPPShinyHunter-publish
+          path: publish
