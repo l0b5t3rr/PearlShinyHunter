@@ -282,7 +282,7 @@ namespace DPPShinyHunter
 
             var titleLabel = new Label
             {
-                Text = "📋 Quick Start Guide:",
+                Text = "📋 Quick Start Guide (More detailed in ReadMe):",
                 Location = new Point(10, 5),
                 Size = new Size(300, 25),
                 Font = new Font("Segoe UI", 10, FontStyle.Bold),
@@ -778,7 +778,7 @@ namespace DPPShinyHunter
             }
 
             // Show notification
-            string message = $"SHINY MAGIKARP FOUND!\n\n{status.Details}\n\nEncounters: {_localEncounters}";
+            string message = $"SHINY FOUND!\n\n{status.Details}\n\nEncounters: {_localEncounters}";
             
             // Flash the window
             if (_autoFocusCheckBox.Checked)

@@ -8,7 +8,6 @@ bxor = bit.bxor
 bor = bit.bor
 floor = math.floor
 
--- compatibility wrappers for code copied from shiny_fishing.lua
 readByte = read8Bit
 readWord = read16Bit
 readDword = read32Bit
@@ -18,7 +17,7 @@ local MEMORY = {
       FISHING_STATE = 0x021D5E03
 }
 
--- Performance/config defaults (declare early so functions can read them)
+-- Performance/config defaults
 local PERF = {
       MINIMAL_UI_IN_TURBO = true,
       SUPPRESS_NOT_SHINY_WRITE = false,
@@ -413,9 +412,8 @@ function main()
             local minimal_ui = PERF and PERF.MINIMAL_UI_IN_TURBO
             if not disable_gui and not (TURBO_ACTIVE and minimal_ui) then
                   setBackgroundBoxes()
-                  -- Always show Trainer IDs (TID/SID)
                   showTrainerIDs()
-                  -- Always show Capture UI (showInfo for enemy slot 0)
+
                   local pidAddr = read32Bit(pidPointerAddr)
                   local enemyAddr = pidAddr + 0x59D88 + koreanOffset
                   showInfo(enemyAddr)
@@ -440,20 +438,13 @@ local STATUS_FILE = (scriptDir .. "..\\shared\\status.txt")
 local LOG_FILE = (scriptDir .. "..\\shared\\log_" .. os.date("%Y%m%d") .. ".txt")
 local COMMAND_FILE = scriptDir .. "..\\shared\\command.txt"
 
--- Diagnostic: print resolved IPC paths so controller and Lua paths can be compared
--- Ensure shared directory and minimal IPC files exist at runtime so publish doesn't need personal files
 local function ensure_shared_dir_and_files()
       local sharedDir = scriptDir .. "..\\shared\\"
-      -- normalize: replace forward slashes if present
       sharedDir = string.gsub(sharedDir, "/", "\\")
-      -- Create directory if missing
       local ok, err = pcall(function()
-            -- attempt to create directory using Lua file operations
             local attr = lfs and lfs.attributes(sharedDir) or nil
       end)
-      -- Use os.execute mkdir as fallback (works on Windows in DeSmuME's environment)
       if not ok or not package then
-            -- best-effort: try to create directory via os.execute
             os.execute('mkdir "' .. sharedDir .. '" >nul 2>nul')
       else
             os.execute('mkdir "' .. sharedDir .. '" >nul 2>nul')
@@ -481,15 +472,10 @@ pcall(ensure_shared_dir_and_files)
 print(string.format("[Lua] STATUS_FILE => %s", STATUS_FILE))
 print(string.format("[Lua] COMMAND_FILE => %s", COMMAND_FILE))
 
--- Lua does not track attempts/encounters; controller tracks statistics.
 local foundShiny = false
-
--- Performance/config flags (tweakable)
--- Internal runtime state
 local TURBO_ACTIVE = false
 
 -- Temporary testing flag: when true, `checkEncounter` will report a shiny immediately
--- Simulation disabled by default; set to true only for manual testing.
 local SIMULATE_SHINY = false
 
 -- File helpers
@@ -518,12 +504,10 @@ function writeStatus(status, details)
             local okRemove, remErr = pcall(function() os.remove(STATUS_FILE) end)
             local okRename, renErr = pcall(function() os.rename(tmp, STATUS_FILE) end)
       end
-      -- Keep console output minimal; controller will track counts
 end
 
 -- Simplified logger: print directly to Lua console. File logging disabled for verbosity.
 function writeLog(message)
-      -- Minimal console logging for debugging; suppress verbose logs when turbo/minimal UI active
       if TURBO_ACTIVE then
             -- Only log important events while turbo is active to reduce CPU overhead
             if string.find(message, "SHINY FOUND") or string.find(message, "START") or string.find(message, "STOP") or string.find(message, "Failed to") or string.find(message, "Emulator speed") then
@@ -558,7 +542,6 @@ function clickRunButton()
       touchScreen(128, 170, 3)
 end
 
--- Fishing/battle handling (copied/adapted)
 function dismissNoBiteMessage()
       writeLog("Dismissing no bite message")
       for i = 1, 5 do pressButton("A"); waitFrames(10) end
@@ -637,10 +620,7 @@ function waitForBattleOrNoBite()
       return true
 end
 
--- getEncounteredSpecies removed (unused)
-
 function getEncounteredPID()
-      -- Read PID exactly the same way the display does
       writeLog("Getting encountered PID")
       local pidAddr = read32Bit(pidPointerAddr)
       local enemyAddr = pidAddr + 0x59D88 + koreanOffset
@@ -704,9 +684,7 @@ local isPaused = false
 local commandPollCounter = 0
 
 function readCommand()
-      -- Try a few path variants for robustness
       local candidates = { COMMAND_FILE }
-      -- swap slashes
       table.insert(candidates, (string.gsub(COMMAND_FILE, "\\", "/")))
       table.insert(candidates, (string.gsub(COMMAND_FILE, "/", "\\")))
 
